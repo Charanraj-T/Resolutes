@@ -5,6 +5,8 @@ from dotenv import load_dotenv
 from vertexai.preview import reasoning_engines
 import importlib
 
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 def get_agent(agent_folder):
     module = importlib.import_module(f"{agent_folder}.agent")
     return module.root_agent
@@ -61,7 +63,7 @@ def main(agent_folder):
     # Send a test query
     print("\nSending test query...")
     test_message = (
-        "Hello, List some customers?"
+        "Hello, what can you tell me about the startup ecosystem?"
     )
     print(f"Message: {test_message}")
     print("\nResponse:")
@@ -72,6 +74,5 @@ def main(agent_folder):
     ):
         print(event)
 
-
 if __name__ == "__main__":
-    main(agent_folder="mongoagent")
+    main(agent_folder="adk")

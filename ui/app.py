@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from utils.vision_client import process_files
 from utils.gemini_client import get_gemini_analysis
 from utils.db import save_startup_data
+import requests
 
 # Load environment variables from .env file
 load_dotenv()
@@ -11,6 +12,7 @@ load_dotenv()
 def main():
     st.set_page_config(page_title="LetsVenture – Resolutes", layout="wide")
     st.title("LetsVenture – Resolutes")
+
     st.write("Analyze startups quickly by processing pitch decks and founder checklists.")
 
     startup_name = st.text_input("Startup Name")
@@ -54,12 +56,68 @@ def main():
 
                     st.success(f"Startup analysis complete! Data saved with ID: {inserted_id}")
 
-                    # 4. Display the JSON output
-                    st.subheader("Generated Startup Analysis (JSON)")
-                    st.json(gemini_json)
+                    st.session_state.gemini_json = gemini_json
 
                 except Exception as e:
                     st.error(f"An unexpected error occurred: {e}")
+                    if 'gemini_json' in st.session_state:
+                        del st.session_state.gemini_json
+
+    if 'gemini_json' in st.session_state:
+        st.subheader("Generated Startup Analysis (JSON)")
+        st.json(st.session_state.gemini_json)
+
+    if st.button("Get ADK Analysis"):
+        with st.spinner("ADK Agent is analyzing the data..."):
+            try:
+                # prompt = f"Analyze the following startup data and provide a detailed evaluation:\n\n{json.dumps(st.session_state.gemini_json, indent=2)}"
+                prompt = f"Hello, what can you do?"
+                user_id = "test_user"
+                session_id = "adk_session"
+                base_url = "http://localhost:8000"
+                agent_name = "adk" 
+
+                session_url = f"{base_url}/apps/{agent_name}/users/{user_id}/sessions/{session_id}"
+                run_url = f"{base_url}/run"
+
+                # Step 1: Create session
+                requests.post(session_url).raise_for_status()
+
+                # Step 2: Send prompt to /run
+                payload = {
+                    "appName": agent_name,
+                    "userId": user_id,
+                    "sessionId": session_id,
+                    "newMessage": {
+                        "parts": [{"text": prompt}],
+                        "role": "user"
+                    },
+                    "streaming": False
+                }
+                
+                run_response = requests.post(run_url, json=payload)
+                run_response.raise_for_status()
+                
+                # Step 3: Delete session
+                requests.delete(session_url).raise_for_status()
+
+                # Process the response
+                response_data = run_response.json()
+                
+                st.write("Raw ADK Agent Response:")
+                st.json(response_data)
+                # Extract the text from the last part of the response
+                last_block = response_data[-1]
+                adk_response = last_block.get("content", {}).get("parts", [{}])[0].get("text", "")
+
+                st.toast("ADK Agent analysis complete!")
+                st.subheader("ADK Agent Analysis")
+                st.markdown(adk_response)
+            except requests.exceptions.RequestException as e:
+                st.error(f"Failed to connect to the ADK Agent server. Please ensure it is running. Error: {e}")
+            except Exception as e:
+                st.error(f"An error occurred with the ADK Agent: {e}")
+
 
 if __name__ == "__main__":
     main()
