@@ -1,3 +1,8 @@
 google-adk
 google-cloud-aiplatform[adk,agent_engines]
 streamlit
+google-cloud-vision
+pymongo
+python-dotenv
+filetype
+docx2txt
