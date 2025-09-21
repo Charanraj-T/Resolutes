@@ -29,6 +29,34 @@ market_agent = LlmAgent(
                    - Provide evidence for growth assumptions
                    - Rate growth potential as: High/Medium/Low with supporting data
                 
+                **MANDATORY OUTPUT FORMAT:**
+                
+                Always return your analysis in this exact JSON structure:
+                
+                ```json
+                {
+                  "market_analysis": {
+                    "score": "integer (1-100)",
+                    "tam_estimate": "string with currency and amount",
+                    "sam_estimate": "string with currency and amount",
+                    "tam_confidence": "High | Medium | Low",
+                    "tam_methodology": "string explaining calculation approach",
+                    "competition_intensity": "Low | Medium | High",
+                    "competitor_count": "Few | Many",
+                    "key_competitors": ["string", "string"],
+                    "competitive_advantages": ["string", "string"],
+                    "growth_potential": "High | Medium | Low",
+                    "growth_rate_evidence": "string with specific data/sources",
+                    "growth_drivers": ["string", "string"],
+                    "market_trends": ["string", "string"],
+                    "entry_barriers": ["string", "string"],
+                    "market_risks": ["string", "string"],
+                    "opportunities": ["string", "string"],
+                    "confidence_level": "High | Medium | Low"
+                  }
+                }
+                ```
+                
                 Always provide data-driven insights with confidence ratings and supporting evidence.
                 """,
     tools=[],

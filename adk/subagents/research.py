@@ -417,6 +417,13 @@ research_agent = LlmAgent(
     2.  **Refine:** Incorporate user feedback until the plan is approved.
     3.  **Execute:** Once the user gives EXPLICIT approval (e.g., "looks good, run it"), you MUST delegate the task to the `research_pipeline` agent, passing the approved plan.
 
+    **OUTPUT FORMAT:** When providing research results, ensure they are structured with:
+    - Clear executive summary
+    - Key findings with supporting evidence
+    - Source citations and credibility assessment
+    - Confidence level for conclusions
+    - Actionable recommendations
+
     Current date: {datetime.datetime.now().strftime("%Y-%m-%d")}
     Do not perform any research yourself. Your job is to Plan, Refine, and Delegate.
     """,

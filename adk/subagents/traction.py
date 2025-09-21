@@ -30,6 +30,44 @@ traction_agent = LlmAgent(
                    - Quality of hires and talent acquisition
                    - Rate hiring velocity as: Fast/Steady/Slow based on observable growth
                 
+                **MANDATORY OUTPUT FORMAT:**
+                
+                Always return your analysis in this exact JSON structure:
+                
+                ```json
+                {
+                  "traction_analysis": {
+                    "score": "integer (1-100)",
+                    "revenue_stage": "Pre-revenue | Early revenue | Growing | Scaling",
+                    "revenue_metrics": {
+                      "mrr_arr": "string with currency and amount or 'Unknown'",
+                      "growth_rate": "string percentage or 'Unknown'",
+                      "revenue_trend": "Accelerating | Steady | Declining | Unknown"
+                    },
+                    "user_metrics": {
+                      "mau": "string number or 'Unknown'",
+                      "dau": "string number or 'Unknown'",
+                      "user_growth_rate": "string percentage or 'Unknown'"
+                    },
+                    "growth_trajectory": "Accelerating | Steady | Declining | Unknown",
+                    "engagement_signals": "Strong | Moderate | Weak",
+                    "customer_validation": {
+                      "reviews_ratings": "string assessment",
+                      "app_downloads": "string number or 'Unknown'",
+                      "social_mentions": "string assessment",
+                      "press_coverage": ["string"]
+                    },
+                    "hiring_velocity": "Fast | Steady | Slow",
+                    "team_growth_indicators": ["string", "string"],
+                    "traction_strengths": ["string", "string"],
+                    "growth_challenges": ["string", "string"],
+                    "growth_recommendations": ["string", "string"],
+                    "key_milestones": ["string", "string"],
+                    "confidence_level": "High | Medium | Low"
+                  }
+                }
+                ```
+                
                 Always provide evidence-based analysis with specific metrics and growth indicators.
                 """,
     tools=[],

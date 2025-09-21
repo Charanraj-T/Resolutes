@@ -29,7 +29,30 @@ team_agent = LlmAgent(
                    - Evidence of long-term dedication
                    - Rate as: High/Medium/Low commitment
                 
-                Always provide structured analysis with clear ratings and evidence-based recommendations.
+                **MANDATORY OUTPUT FORMAT:**
+                
+                Always return your analysis in this exact JSON structure:
+                
+                ```json
+                {
+                  "team_analysis": {
+                    "score": "integer (1-100)",
+                    "founder_background": "Strong | Moderate | Weak",
+                    "founder_background_details": "string explaining assessment",
+                    "team_completeness": "Complete | Partial | Gaps",
+                    "team_completeness_details": "string explaining current team structure",
+                    "commitment_level": "High | Medium | Low",
+                    "commitment_details": "string explaining commitment assessment",
+                    "key_strengths": ["string", "string"],
+                    "key_weaknesses": ["string", "string"],
+                    "red_flags": ["string"], // optional, only if serious concerns
+                    "recommendations": ["string", "string"],
+                    "confidence_level": "High | Medium | Low"
+                  }
+                }
+                ```
+                
+                Ensure all assessments are evidence-based and provide specific justifications for ratings.
                 """,
     tools=[],
     planner=PlanReActPlanner(),
