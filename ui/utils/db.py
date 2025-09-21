@@ -1,4 +1,5 @@
 import os
+import json
 from pymongo import MongoClient
 from pymongo.server_api import ServerApi
 import datetime
@@ -48,3 +49,103 @@ def save_startup_data(startup_name, extracted_text, gemini_json):
     
     result = db.startups.insert_one(startup_document)
     return result.inserted_id
+
+def sanitize_adk_response(adk_response):
+    """
+    Sanitizes ADK response by parsing JSON and handling potential formatting issues.
+    
+    Args:
+        adk_response (str): Raw ADK response string
+        
+    Returns:
+        dict: Parsed and sanitized JSON object, or original response if parsing fails
+    """
+    if not adk_response or not isinstance(adk_response, str):
+        return {"error": "Invalid ADK response format"}
+    
+    try:
+        # Try to parse as JSON
+        if adk_response.strip().startswith('{') or adk_response.strip().startswith('['):
+            return json.loads(adk_response.strip())
+        
+        # If it's wrapped in markdown code blocks, extract the JSON
+        if '```json' in adk_response:
+            start = adk_response.find('```json') + 7
+            end = adk_response.find('```', start)
+            if end != -1:
+                json_content = adk_response[start:end].strip()
+                return json.loads(json_content)
+        
+        # If it's wrapped in regular code blocks, extract the JSON
+        if '```' in adk_response:
+            start = adk_response.find('```') + 3
+            end = adk_response.rfind('```')
+            if end != -1 and end > start:
+                json_content = adk_response[start:end].strip()
+                return json.loads(json_content)
+        
+        # Try to find JSON-like content within the response
+        import re
+        json_pattern = r'(\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\})'
+        matches = re.findall(json_pattern, adk_response, re.DOTALL)
+        if matches:
+            return json.loads(matches[0])
+        
+        # If all else fails, return as text content
+        return {"analysis_text": adk_response.strip()}
+        
+    except json.JSONDecodeError as e:
+        print(f"JSON parsing error: {e}")
+        return {"error": f"JSON parsing failed: {str(e)}", "raw_response": adk_response}
+    except Exception as e:
+        print(f"Unexpected error during ADK response sanitization: {e}")
+        return {"error": f"Sanitization failed: {str(e)}", "raw_response": adk_response}
+
+def save_adk_analysis(startup_name, adk_response):
+    """
+    Saves ADK analysis to MongoDB after sanitization.
+    
+    Args:
+        startup_name (str): The name of the startup
+        adk_response (str): Raw ADK agent response
+        
+    Returns:
+        The ID of the inserted document, or None if failed
+    """
+    db = get_db()
+    if db is None:
+        return None
+    
+    try:
+        # Sanitize the ADK response
+        sanitized_response = sanitize_adk_response(adk_response)
+        
+        # Create document structure
+        adk_document = {
+            "startup_name": startup_name,
+            "adk_analysis": sanitized_response,
+            "analysis_timestamp": datetime.datetime.utcnow(),
+            "analysis_type": "adk_comprehensive"
+        }
+        
+        # Try to update existing startup document first
+        update_result = db.startups.update_one(
+            {"startup_name": startup_name},
+            {"$set": {
+                "adk_analysis": sanitized_response,
+                "adk_timestamp": datetime.datetime.utcnow()
+            }}
+        )
+        
+        if update_result.matched_count > 0:
+            print(f"Updated existing startup document for {startup_name}")
+            return "updated"
+        else:
+            # If no existing document, create new one
+            result = db.adk_analyses.insert_one(adk_document)
+            print(f"Created new ADK analysis document for {startup_name}")
+            return result.inserted_id
+            
+    except Exception as e:
+        print(f"Error saving ADK analysis: {e}")
+        return None
