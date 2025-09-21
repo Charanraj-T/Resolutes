@@ -1,9 +1,17 @@
 import streamlit as st
 import json
+import base64
 from dotenv import load_dotenv
 from utils.vision_client import process_files
 from utils.gemini_client import get_gemini_analysis
 from utils.db import save_startup_data, save_adk_analysis
+try:
+    from utils.pdf_generator import generate_investment_report_pdf
+    PDF_AVAILABLE = True
+except ImportError:
+    from utils.simple_report import simple_pdf_fallback
+    PDF_AVAILABLE = False
+    print("⚠️  ReportLab not available. Using simple text reports.")
 import requests
 
 # Load environment variables from .env file
@@ -138,6 +146,59 @@ def main():
                             st.text(adk_response)
                     except json.JSONDecodeError:
                         st.text(adk_response)
+                    
+                    # Generate PDF Report
+                    st.subheader("📄 Investment Report")
+                    
+                    try:
+                        # Generate the PDF or text report
+                        with st.spinner("Generating professional investment report..."):
+                            if PDF_AVAILABLE:
+                                pdf_buffer = generate_investment_report_pdf(adk_response, startup_name)
+                                file_extension = ".pdf"
+                                mime_type = "application/pdf"
+                                report_type = "PDF Report"
+                            else:
+                                pdf_buffer = simple_pdf_fallback(adk_response, startup_name)
+                                file_extension = ".txt"
+                                mime_type = "text/plain"
+                                report_type = "Text Report"
+                            
+                        # Create download button
+                        pdf_bytes = pdf_buffer.getvalue()
+                        
+                        st.download_button(
+                            label=f"📥 Download Investment Report ({report_type})",
+                            data=pdf_bytes,
+                            file_name=f"{startup_name}_Investment_Analysis_Report{file_extension}",
+                            mime=mime_type,
+                            key="download_report"
+                        )
+                        
+                        if PDF_AVAILABLE:
+                            # Display PDF in browser
+                            st.subheader("📊 Report Preview")
+                            b64_pdf = base64.b64encode(pdf_bytes).decode()
+                            
+                            # Create an iframe to display the PDF
+                            pdf_display = f'<iframe src="data:application/pdf;base64,{b64_pdf}" width="100%" height="800" type="application/pdf"></iframe>'
+                            st.markdown(pdf_display, unsafe_allow_html=True)
+                        else:
+                            # Display text report
+                            st.subheader("📊 Report Preview")
+                            st.text_area(
+                                "Report Content:",
+                                value=pdf_bytes.decode('utf-8'),
+                                height=400,
+                                disabled=True
+                            )
+                            st.info("💡 Install ReportLab (`pip install reportlab`) for professional PDF reports!")
+                        
+                        st.success(f"✅ Professional {report_type.lower()} generated successfully!")
+                        
+                    except Exception as pdf_error:
+                        st.error(f"Failed to generate report: {pdf_error}")
+                        st.info("The analysis was completed successfully, but report generation encountered an issue.")
                 except requests.exceptions.RequestException as e:
                     st.error(f"Failed to connect to the ADK Agent server. Please ensure it is running. Error: {e}")
                 except Exception as e:

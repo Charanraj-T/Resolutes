@@ -7,3 +7,4 @@ python-dotenv
 filetype
 docx2txt
 requests
+reportlab
