@@ -1,0 +1,8 @@
+streamlit
+google-cloud-vision
+pymongo
+python-dotenv
+filetype
+docx2txt
+requests
+vertexai
