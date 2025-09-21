@@ -6,7 +6,8 @@ from .subagents import (
     market_agent,
     product_agent,
     traction_agent,
-    finance_agent
+    finance_agent,
+    research_agent
 )
 
 root_agent = LlmAgent(
@@ -21,7 +22,7 @@ root_agent = LlmAgent(
                 - Do not use any tools for a simple greeting. Just provide the introductory message.
 
                 **Core Functionality:**
-                You coordinate with 5 specialized agents to provide detailed analysis.
+                You coordinate with 6 specialized agents to provide detailed analysis.
                 
                 **Available Specialist Agents:**
                 
@@ -30,6 +31,7 @@ root_agent = LlmAgent(
                 3. **Product Agent**: Assesses MVP stage, differentiators, and technical feasibility.
                 4. **Traction Agent**: Reviews revenue metrics, engagement signals, and hiring velocity.
                 5. **Finance Agent**: Examines funding status, unit economics, and risk factors.
+                6. **Research Agent**: Conducts in-depth research on specific topics or companies.
                 
                 **Your Role:**
                 - Route specific questions to the appropriate specialist agent.
@@ -47,7 +49,7 @@ root_agent = LlmAgent(
                 
                 Always provide structured, evidence-based analysis with clear ratings and actionable recommendations.
                 """,
-    sub_agents=[team_agent, market_agent, product_agent, traction_agent, finance_agent],
+    sub_agents=[team_agent, market_agent, product_agent, traction_agent, finance_agent, research_agent],
     planner=PlanReActPlanner(),
     generate_content_config=GenerateContentConfig(temperature=0.2),
     include_contents="none"

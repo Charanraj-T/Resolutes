@@ -7,11 +7,13 @@ from .market import market_agent
 from .product import product_agent
 from .traction import traction_agent
 from .finance import finance_agent
+from .research import research_agent
 
 __all__ = [
     "team_agent",
     "market_agent", 
     "product_agent",
     "traction_agent",
-    "finance_agent"
+    "finance_agent",
+    "research_agent"
 ]
